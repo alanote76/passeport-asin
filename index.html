@@ -105,29 +105,36 @@ body {
 
 /* ── CLASSEMENT PAR PÔLE ── */
 .poles-card {
-  background: var(--white); border-radius: var(--radius); padding: 28px;
+  background: var(--white); border-radius: var(--radius); padding: 24px 28px;
   margin-bottom: 24px; box-shadow: var(--shadow);
 }
-.poles-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
-.pole-row {
-  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
-  border-radius: 12px; margin-bottom: 6px; transition: background 0.2s;
+.poles-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.poles-content { display: flex; align-items: center; gap: 28px; }
+.pie-container { flex-shrink: 0; position: relative; width: 180px; height: 180px; }
+.pie-container svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.pie-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center;
 }
-.pole-row:hover { background: #f5f8fb; }
-.pole-rank { width: 28px; font-size: 14px; font-weight: 800; }
-.pole-name-badge {
-  min-width: 80px; padding: 6px 14px; border-radius: 8px;
-  font-size: 13px; font-weight: 800; color: #fff; text-align: center;
-  letter-spacing: 0.5px;
+.pie-center .pie-total { font-size: 24px; font-weight: 900; color: var(--navy); }
+.pie-center .pie-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.pole-legend { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; }
+.pole-legend-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+  border-radius: 8px; background: #f8fafc; border: 1px solid #e8edf2;
+  font-size: 12px; transition: all 0.2s; cursor: default; position: relative;
 }
-.pole-details { flex: 1; }
-.pole-details .pole-stats { font-size: 12px; color: var(--text-muted); }
-.pole-details .pole-stats strong { color: var(--text-dark); }
-.pole-bar-wrap { width: 140px; }
-.pole-bar-bg { height: 8px; border-radius: 4px; background: #e8edf2; overflow: hidden; }
-.pole-bar-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
-.pole-pct { font-size: 15px; font-weight: 900; width: 50px; text-align: right; }
-.pole-medal { font-size: 18px; width: 28px; text-align: center; }
+.pole-legend-item:hover { border-color: var(--teal); background: #f0f8f9; }
+.pole-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.pole-legend-name { font-weight: 700; color: var(--text-dark); }
+.pole-legend-pct { font-weight: 800; margin-left: 2px; }
+.pole-legend-detail { font-size: 11px; color: var(--text-muted); }
+.pole-legend-medal { font-size: 14px; }
+
+@media (max-width: 700px) {
+  .poles-content { flex-direction: column; }
+  .pie-container { width: 150px; height: 150px; }
+}
 
 /* Ranking list */
 .ranking-card {
@@ -538,7 +545,7 @@ function renderLeaderboard() {
       </div>`;
   }).join('');
 
-  // Classement par pôle
+  // Classement par pôle — Camembert
   const poleMap = {};
   allUsers.forEach(u => {
     const dept = u.departement || 'Autre';
@@ -550,33 +557,57 @@ function renderLeaderboard() {
     'IN': '#1565c0', 'SID-DEP': '#6a1b9a', 'SID-DSA': '#c62828',
     'SN': '#2e7d32', 'CASE': '#e65100', 'DAF': '#f5a623', 'PRMP': '#00838f'
   };
+  const defaultColors = ['#455a64','#78909c','#a1887f','#7986cb','#4dd0e1'];
 
   const poleRanking = Object.entries(poleMap).map(([pole, users]) => {
     const totalBadgesPole = users.reduce((s, u) => s + getBadgeCount(u), 0);
     const maxBadges = users.length * BADGES_CONFIG.length;
     const pct = Math.round((totalBadgesPole / maxBadges) * 100);
     const avgBadges = (totalBadgesPole / users.length).toFixed(1);
-    return { pole, users, totalBadges: totalBadgesPole, pct, avgBadges, count: users.length };
+    return { pole, totalBadges: totalBadgesPole, pct, avgBadges, count: users.length };
   }).sort((a, b) => b.pct - a.pct || b.totalBadges - a.totalBadges);
 
+  // SVG donut
+  const R = 70, CX = 90, CY = 90, CIRC = 2 * Math.PI * R;
+  const totalAllBadges = poleRanking.reduce((s, p) => s + p.totalBadges, 0) || 1;
+  let cumOffset = 0;
+  const slices = poleRanking.map((p, i) => {
+    const frac = p.totalBadges / totalAllBadges;
+    const dash = frac * CIRC;
+    const gap = CIRC - dash;
+    const offset = -cumOffset;
+    cumOffset += dash;
+    const color = poleColors[p.pole] || defaultColors[i % defaultColors.length];
+    return `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${color}" stroke-width="28"
+      stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${offset}" />`;
+  }).join('');
+
   const poleMedals = ['🥇', '🥈', '🥉'];
-  const poleRankingHTML = poleRanking.map((p, i) => {
-    const color = poleColors[p.pole] || 'var(--navy)';
-    const barColor = i === 0 ? 'var(--gold)' : (i === 1 ? 'var(--silver)' : (i === 2 ? 'var(--bronze)' : 'var(--teal)'));
+  const legendHTML = poleRanking.map((p, i) => {
+    const color = poleColors[p.pole] || defaultColors[i % defaultColors.length];
     return `
-      <div class="pole-row">
-        <div class="pole-medal">${i < 3 ? poleMedals[i] : ''}</div>
-        <div class="pole-rank" style="color:${i < 3 ? 'var(--gold)' : 'var(--text-muted)'}">#${i + 1}</div>
-        <div class="pole-name-badge" style="background:${color}">${p.pole}</div>
-        <div class="pole-details">
-          <div class="pole-stats"><strong>${p.count}</strong> CDP • <strong>${p.avgBadges}</strong> badges/pers. • <strong>${p.totalBadges}</strong> badges au total</div>
-        </div>
-        <div class="pole-bar-wrap">
-          <div class="pole-bar-bg"><div class="pole-bar-fill" style="width:${p.pct}%;background:${barColor}"></div></div>
-        </div>
-        <div class="pole-pct" style="color:${color}">${p.pct}%</div>
+      <div class="pole-legend-item">
+        ${i < 3 ? `<span class="pole-legend-medal">${poleMedals[i]}</span>` : ''}
+        <span class="pole-dot" style="background:${color}"></span>
+        <span class="pole-legend-name">${p.pole}</span>
+        <span class="pole-legend-pct" style="color:${color}">${p.pct}%</span>
+        <span class="pole-legend-detail">${p.count} CDP • ${p.avgBadges} badges/pers.</span>
       </div>`;
   }).join('');
+
+  const poleRankingHTML = `
+    <div class="poles-content">
+      <div class="pie-container">
+        <svg viewBox="0 0 180 180">
+          ${slices}
+        </svg>
+        <div class="pie-center">
+          <div class="pie-total">${totalAllBadges}</div>
+          <div class="pie-label">badges</div>
+        </div>
+      </div>
+      <div class="pole-legend">${legendHTML}</div>
+    </div>`;
 
   // Ranking individuel
   const rankingHTML = sorted.map((user, i) => {
