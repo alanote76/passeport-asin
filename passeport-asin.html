@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passeport ASIN — Gestion des Projets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,400&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1a3a5c;
+  --navy-dark: #0f2640;
+  --navy-light: #2a5a8c;
+  --teal: #00838f;
+  --teal-light: #4db6ac;
+  --gold: #f5a623;
+  --gold-light: #ffd54f;
+  --bronze: #cd7f32;
+  --silver: #b0bec5;
+  --success: #2e7d32;
+  --bg: #f0f4f8;
+  --white: #ffffff;
+  --text-dark: #1a2332;
+  --text-muted: #607d8b;
+  --radius: 16px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-hover: 0 8px 28px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text-dark);
+  min-height: 100vh;
+}
+
+/* ── LOADING ── */
+#loading-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, var(--navy-dark), var(--navy), var(--teal));
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #fff; gap: 24px;
+  transition: opacity 0.5s, visibility 0.5s;
+}
+#loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader { width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.15); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(90deg, var(--navy-dark), var(--navy));
+  padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+}
+.header-brand { display: flex; align-items: center; gap: 14px; color: #fff; }
+.header-brand .icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.header-brand h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+.header-brand small { font-size: 10px; opacity: 0.5; letter-spacing: 1.5px; text-transform: uppercase; display: block; }
+.tab-switch { display: flex; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 3px; }
+.tab-btn {
+  padding: 8px 20px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s; font-family: inherit; background: transparent; color: rgba(255,255,255,0.65);
+}
+.tab-btn.active { background: #fff; color: var(--navy); }
+.header-user { display: flex; align-items: center; gap: 10px; color: #fff; }
+.header-user .avatar-sm {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--teal);
+  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;
+}
+.header-user span { font-size: 13px; font-weight: 600; }
+.btn-logout {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7);
+  padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+/* ── MAIN ── */
+.main { max-width: 920px; margin: 0 auto; padding: 28px 20px; }
+.view { display: none; }
+.view.active { display: block; animation: fadeUp 0.4s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── PASSPORT VIEW ── */
+.passport-header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, var(--teal) 100%);
+  border-radius: 20px; padding: 32px 36px; color: #fff;
+  display: flex; align-items: center; gap: 28px; margin-bottom: 24px; position: relative; overflow: hidden;
+}
+.passport-header::before {
+  content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px;
+  border-radius: 50%; background: rgba(255,255,255,0.04);
+}
+.passport-header::after {
+  content: ''; position: absolute; bottom: -60px; right: 100px; width: 140px; height: 140px;
+  border-radius: 50%; background: rgba(255,255,255,0.025);
+}
+.avatar-ring { position: relative; flex-shrink: 0; }
+.avatar-ring svg { transform: rotate(-90deg); }
+.avatar-ring .avatar-inner {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 22px; font-weight: 800; color: #fff; letter-spacing: 1px;
+}
+.passport-info { flex: 1; z-index: 1; }
+.passport-info .label { font-size: 12px; opacity: 0.6; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.passport-info .name { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.passport-info .meta { font-size: 14px; opacity: 0.75; margin-top: 2px; }
+.passport-level {
+  text-align: center; z-index: 1;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px; padding: 12px 24px;
+}
+.passport-level .lbl { font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1.5px; }
+.passport-level .level-name { font-size: 18px; font-weight: 800; margin-top: 2px; }
+.passport-level .badge-count { font-size: 28px; font-weight: 900; margin-top: 4px; }
+.passport-level .badge-count small { font-size: 14px; opacity: 0.5; }
+
+/* Progress bar */
+.progress-card {
+  background: var(--white); border-radius: var(--radius); padding: 20px 28px;
+  margin-bottom: 24px; box-shadow: var(--shadow);
+}
+.progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.progress-top .label { font-size: 14px; font-weight: 700; }
+.progress-top .pct { font-size: 14px; font-weight: 800; color: var(--teal); }
+.progress-bar { height: 10px; border-radius: 5px; background: #e8edf2; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--teal), var(--teal-light)); transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.progress-hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+.progress-hint strong { color: var(--gold); }
+
+/* Badges grid */
+.badges-card {
+  background: var(--white); border-radius: var(--radius); padding: 28px;
+  box-shadow: var(--shadow);
+}
+.badges-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+.badges-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+.badge-item {
+  width: 140px; height: 175px; border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); position: relative; flex-shrink: 0;
+}
+.badge-item.unlocked { border: 2px solid; }
+.badge-item.locked { background: #e8edf2; border: 2px dashed #cfd8dc; opacity: 0.5; }
+.badge-item.unlocked:hover { transform: translateY(-6px) scale(1.03); }
+.badge-item .badge-icon { font-size: 42px; transition: transform 0.3s; }
+.badge-item:hover .badge-icon { transform: scale(1.15) rotate(5deg); }
+.badge-item.locked .badge-icon { filter: grayscale(1); }
+.badge-item .badge-name { font-size: 11.5px; font-weight: 700; text-align: center; padding: 0 8px; letter-spacing: 0.02em; }
+.badge-item .badge-check {
+  position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--success); display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #fff;
+}
+.badge-item .badge-date {
+  font-size: 10px; color: var(--text-muted); font-weight: 500;
+}
+.badge-tooltip {
+  position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%);
+  background: var(--navy-dark); color: #fff; padding: 6px 12px; border-radius: 8px;
+  font-size: 11px; white-space: nowrap; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.badge-item:hover .badge-tooltip { opacity: 1; }
+
+/* ── LEADERBOARD VIEW ── */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--white); border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow); border-left: 4px solid;
+}
+.stat-card .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.stat-card .stat-value { font-size: 30px; font-weight: 900; margin-top: 4px; }
+
+/* Podium */
+.podium-card {
+  background: var(--white); border-radius: var(--radius); padding: 28px;
+  margin-bottom: 24px; box-shadow: var(--shadow);
+}
+.podium-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 24px; }
+.podium { display: flex; justify-content: center; align-items: flex-end; gap: 20px; }
+.podium-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.3s; }
+.podium-item:hover { transform: scale(1.05); }
+.podium-medal { font-size: 28px; margin-bottom: 8px; }
+.podium-avatar {
+  width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 8px;
+}
+.podium-name { font-size: 12px; font-weight: 700; text-align: center; max-width: 100px; }
+.podium-badges { font-size: 11px; color: var(--text-muted); }
+.podium-bar {
+  width: 90px; border-radius: 8px 8px 0 0; margin-top: 12px;
+  background: linear-gradient(180deg, var(--navy), var(--navy-dark));
+  display: flex; align-items: flex-start; justify-content: center; padding-top: 12px;
+  color: #fff; font-size: 24px; font-weight: 900;
+}
+
+/* Ranking list */
+.ranking-card {
+  background: var(--white); border-radius: var(--radius); padding: 28px;
+  box-shadow: var(--shadow);
+}
+.ranking-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+.ranking-row {
+  display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px;
+  cursor: pointer; transition: background 0.2s; border: 2px solid transparent; margin-bottom: 4px;
+}
+.ranking-row:hover { background: #f5f8fb; }
+.ranking-row.highlight { background: rgba(26,58,92,0.04); border-color: rgba(26,58,92,0.12); }
+.rank-num { width: 28px; font-size: 14px; font-weight: 800; }
+.rank-num.top3 { color: var(--gold); }
+.rank-num.normal { color: var(--text-muted); }
+.rank-avatar {
+  width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.rank-info { flex: 1; }
+.rank-info .rname { font-size: 14px; font-weight: 700; }
+.rank-info .rmeta { font-size: 11px; color: var(--text-muted); }
+.rank-badges { display: flex; gap: 3px; margin-right: 12px; }
+.rank-badges span { font-size: 14px; position: relative; cursor: pointer; }
+.rank-badges span.off { filter: grayscale(1); opacity: 0.2; }
+.rank-badges span .rb-tip {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: var(--navy-dark); color: #fff; padding: 5px 10px; border-radius: 7px;
+  font-size: 11px; font-weight: 600; white-space: nowrap; z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.rank-badges span:hover .rb-tip { opacity: 1; }
+.rank-progress { width: 80px; }
+.rank-bar-bg { height: 6px; border-radius: 3px; background: #e8edf2; overflow: hidden; }
+.rank-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--teal), var(--teal-light)); transition: width 0.8s ease; }
+.rank-pct { font-size: 13px; font-weight: 800; color: var(--teal); width: 35px; text-align: right; }
+
+/* Footer */
+.footer { text-align: center; padding: 20px 0 28px; font-size: 11px; color: var(--text-muted); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .passport-header { flex-direction: column; text-align: center; padding: 24px 20px; gap: 16px; }
+  .passport-level { width: 100%; }
+  .stats-row { grid-template-columns: 1fr; }
+  .podium { gap: 10px; }
+  .podium-bar { width: 70px; }
+  .header { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+  .rank-badges { display: none; }
+  .badge-item { width: 120px; height: 155px; }
+}
+
+/* ── PROCESS / COMMENT PROGRESSER ── */
+.process-hero {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, var(--teal) 100%);
+  border-radius: 20px; padding: 32px 36px; color: #fff; margin-bottom: 24px;
+  position: relative; overflow: hidden;
+}
+.process-hero::before {
+  content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px;
+  border-radius: 50%; background: rgba(255,255,255,0.04);
+}
+.process-hero h2 { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+.process-hero p { font-size: 14px; opacity: 0.8; max-width: 600px; line-height: 1.6; }
+
+.process-timeline { position: relative; padding-left: 0; margin-bottom: 24px; }
+
+.process-step {
+  background: var(--white); border-radius: var(--radius); padding: 24px 28px;
+  box-shadow: var(--shadow); margin-bottom: 16px; display: flex; gap: 20px;
+  align-items: flex-start; transition: transform 0.25s, box-shadow 0.25s;
+  border-left: 4px solid transparent;
+}
+.process-step:hover { transform: translateX(4px); box-shadow: var(--shadow-hover); }
+.step-number {
+  width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center;
+  justify-content: center; font-size: 22px; font-weight: 900; color: #fff; flex-shrink: 0;
+}
+.step-content { flex: 1; }
+.step-content h4 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.step-content p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.step-content .step-details {
+  margin-top: 10px; padding: 12px 16px; border-radius: 10px; background: #f5f8fb;
+  font-size: 12px; color: var(--text-dark); line-height: 1.7;
+}
+.step-content .step-details strong { color: var(--navy); }
+
+.step-arrow {
+  display: flex; justify-content: center; padding: 4px 0;
+  color: var(--teal); font-size: 20px; opacity: 0.4;
+}
+
+.process-badge-grid {
+  background: var(--white); border-radius: var(--radius); padding: 28px;
+  box-shadow: var(--shadow); margin-bottom: 24px;
+}
+.process-badge-grid h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+.pbadge-list { display: flex; flex-direction: column; gap: 12px; }
+.pbadge-row {
+  display: flex; align-items: center; gap: 16px; padding: 14px 18px;
+  border-radius: 12px; background: #f8fafc; border: 1px solid #e8edf2;
+  transition: all 0.2s;
+}
+.pbadge-row:hover { border-color: var(--teal); background: #f0f8f9; }
+.pbadge-icon { font-size: 28px; flex-shrink: 0; }
+.pbadge-info { flex: 1; }
+.pbadge-info .pbname { font-size: 14px; font-weight: 700; }
+.pbadge-info .pbreq { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.pbadge-tag {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  padding: 4px 10px; border-radius: 6px; color: #fff; white-space: nowrap;
+}
+
+.process-cta {
+  background: linear-gradient(135deg, var(--gold), #ffb74d);
+  border-radius: var(--radius); padding: 24px 32px; text-align: center;
+  box-shadow: 0 4px 16px rgba(245,166,35,0.25);
+}
+.process-cta h3 { font-size: 18px; font-weight: 800; color: var(--navy-dark); margin-bottom: 6px; }
+.process-cta p { font-size: 13px; color: var(--navy); opacity: 0.8; }
+
+/* ── AMBASSADEURS WIDGET ── */
+.amb-widget {
+  margin-top: 12px; padding: 16px 18px; border-radius: 12px; background: #f5f8fb;
+}
+.amb-card {
+  display: flex; align-items: center; gap: 14px; padding: 12px 14px;
+  background: #fff; border-radius: 10px; border: 1px solid #e8edf2;
+  margin-bottom: 8px; transition: all 0.2s;
+}
+.amb-card:last-child { margin-bottom: 0; }
+.amb-card:hover { border-color: #6a1b9a40; box-shadow: 0 2px 10px rgba(106,27,154,0.08); }
+.amb-avatar {
+  width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #6a1b9a, #9c27b0);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: #fff;
+}
+.amb-info { flex: 1; }
+.amb-name { font-size: 14px; font-weight: 700; color: var(--text-dark); }
+.amb-pole { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.amb-contact { display: flex; gap: 6px; flex-wrap: wrap; }
+.amb-btn {
+  display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px;
+  background: #f0f4f8; border-radius: 7px; font-size: 11px; font-weight: 600;
+  color: var(--navy); text-decoration: none; transition: all 0.2s; white-space: nowrap;
+}
+.amb-btn:hover { background: #e3eaf1; color: #6a1b9a; }
+
+/* ── ERROR STATE ── */
+.error-card {
+  background: #fff3f3; border: 2px solid #ffcdd2; border-radius: var(--radius);
+  padding: 32px; text-align: center; margin: 40px auto; max-width: 500px;
+}
+.error-card h3 { color: #c62828; margin-bottom: 8px; }
+.error-card p { color: var(--text-muted); font-size: 14px; }
+.error-card code { background: #fee; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="loader"></div>
+  <div style="font-size:18px;font-weight:700;">Passeport ASIN</div>
+  <div style="font-size:13px;opacity:0.6;">Chargement des données...</div>
+</div>
+
+<!-- IDENTIFICATION SCREEN supprimé — accès direct au classement -->
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+  <div class="header">
+    <div class="header-brand">
+      <div class="icon">🛂</div>
+      <div>
+        <h2>Passeport ASIN</h2>
+        <small>Gestion des Projets • Gamification</small>
+      </div>
+    </div>
+    <div class="tab-switch">
+      <button class="tab-btn active" data-view="leaderboard" onclick="switchView('leaderboard')">🏆 Classement</button>
+      <button class="tab-btn" data-view="passport" onclick="switchView('passport')">🛂 Mon Passeport</button>
+      <button class="tab-btn" data-view="process" onclick="switchView('process')">📋 Comment progresser ?</button>
+    </div>
+    <div class="header-user">
+      <div style="font-size:10px;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:6px;">ASIN</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- LEADERBOARD VIEW (page d'accueil) -->
+    <div id="view-leaderboard" class="view active"></div>
+
+    <!-- PASSPORT VIEW -->
+    <div id="view-passport" class="view"></div>
+
+    <!-- PROCESS VIEW -->
+    <div id="view-process" class="view"></div>
+  </div>
+
+  <div class="footer">Passeport ASIN • Plateforme de Gestion des Projets • v1.0</div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  CONFIGURATION — MODIFIE ICI L'URL DE TON GOOGLE SHEET     ║
+// ╚══════════════════════════════════════════════════════════════╝
+//
+// INSTRUCTIONS :
+// 1. Crée un Google Sheet avec les colonnes suivantes (ligne 1 = en-têtes) :
+//    id | nom | departement | gouvernance | feuille_route | risques | livrables | objectifs | participation | date_gouvernance | date_feuille_route | date_risques | date_livrables | date_objectifs | date_participation | sessions
+//
+// 2. Remplis les données (TRUE/FALSE pour les badges, dates au format JJ/MM/AAAA)
+//
+// 3. Fichier > Partager > Publier sur le Web > Format CSV > Copie le lien
+//
+// 4. Colle le lien ci-dessous :
+
+const SHEET_CSV_URL = 'COLLE_TON_URL_ICI';
+
+// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=0&single=true&output=csv'
+//
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  ONGLET 2 : AMBASSADEURS                                    ║
+// ╠══════════════════════════════════════════════════════════════╣
+// ║  Crée un 2ème onglet "Ambassadeurs" dans le même Sheet      ║
+// ║  Colonnes : pole | nom | email | telephone                  ║
+// ║  Puis : Fichier > Publier sur le Web > Onglet Ambassadeurs  ║
+// ║  > CSV > Colle le lien ci-dessous                           ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+const SHEET_AMBASSADORS_URL = 'COLLE_TON_URL_AMBASSADEURS_ICI';
+
+// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=123456&single=true&output=csv'
+//
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  MODE DEMO — Données fictives si pas de Google Sheet        ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+const DEMO_MODE = SHEET_CSV_URL === 'COLLE_TON_URL_ICI';
+
+const DEMO_AMBASSADORS = [
+  { pole: 'IN', nom: 'Rachid AMADOU', email: 'r.amadou@asin.bj', telephone: '+229 97 00 11 22' },
+  { pole: 'IN', nom: 'Fatouma SANNI', email: 'f.sanni@asin.bj', telephone: '+229 97 00 11 23' },
+  { pole: 'SID-DEP', nom: 'Patrick HOUNKPE', email: 'p.hounkpe@asin.bj', telephone: '+229 97 00 22 33' },
+  { pole: 'SID-DSA', nom: 'Marie AHOUANSOU', email: 'm.ahouansou@asin.bj', telephone: '+229 97 00 33 44' },
+  { pole: 'SID-DSA', nom: 'Eric DOSSOU-YOVO', email: 'e.dossou@asin.bj', telephone: '+229 97 00 33 45' },
+  { pole: 'SN', nom: 'Léonce ADJIBADE', email: 'l.adjibade@asin.bj', telephone: '+229 97 00 44 55' },
+  { pole: 'CASE', nom: 'Sylvie TOSSOU', email: 's.tossou@asin.bj', telephone: '+229 97 00 55 66' },
+  { pole: 'DAF', nom: 'Roger ZANNOU', email: 'r.zannou@asin.bj', telephone: '+229 97 00 66 77' },
+  { pole: 'PRMP', nom: 'Carine LOKOSSOU', email: 'c.lokossou@asin.bj', telephone: '+229 97 00 77 88' },
+];
+
+const BADGES_CONFIG = [
+  { id: 'gouvernance', name: 'Gouvernance', icon: '🏛️', color: '#5c6bc0', requirement: 'Fiche projet, parties prenantes, comités définis' },
+  { id: 'feuille_route', name: 'Feuille de Route', icon: '🗺️', color: '#00897b', requirement: 'Jalons, activités et % avancement à jour' },
+  { id: 'risques', name: 'Risques & Points Durs', icon: '⚠️', color: '#e65100', requirement: 'Min. 3 risques documentés avec actions' },
+  { id: 'livrables', name: 'Livrables', icon: '📦', color: '#6a1b9a', requirement: 'Liste livrables avec dates et responsables' },
+  { id: 'objectifs', name: 'Objectifs & Indicateurs', icon: '🎯', color: '#1565c0', requirement: 'Indicateurs avec valeurs cibles et réelles' },
+  { id: 'participation', name: 'Assidu PMO', icon: '🎓', color: '#f5a623', requirement: 'Min. 4 sessions sur les 2 derniers mois' },
+];
+
+const LEVELS = [
+  { name: 'Débutant', min: 0, max: 1, color: '#b0bec5' },
+  { name: 'Initié', min: 2, max: 3, color: '#cd7f32' },
+  { name: 'Confirmé', min: 4, max: 5, color: '#f5a623' },
+  { name: 'Expert ASIN ⭐', min: 6, max: 6, color: '#e91e63' },
+];
+
+const DEMO_DATA = [
+  { id:'CDP001', nom:'Amina KOUDOSSOU', departement:'DSI', gouvernance:true, feuille_route:true, risques:true, livrables:true, objectifs:true, participation:true, sessions:8, date_gouvernance:'15/01/2025', date_feuille_route:'22/01/2025', date_risques:'05/02/2025', date_livrables:'12/02/2025', date_objectifs:'19/02/2025', date_participation:'21/02/2025' },
+  { id:'CDP002', nom:'Boris AGBODJAN', departement:'DPSI', gouvernance:true, feuille_route:true, risques:true, livrables:false, objectifs:true, participation:true, sessions:7, date_gouvernance:'16/01/2025', date_feuille_route:'23/01/2025', date_risques:'06/02/2025', date_objectifs:'20/02/2025', date_participation:'21/02/2025' },
+  { id:'CDP003', nom:'Clarisse HOUNSOU', departement:'DIT', gouvernance:true, feuille_route:true, risques:false, livrables:true, objectifs:false, participation:true, sessions:6, date_gouvernance:'17/01/2025', date_feuille_route:'24/01/2025', date_livrables:'13/02/2025', date_participation:'21/02/2025' },
+  { id:'CDP004', nom:'David MENSAH', departement:'DSI', gouvernance:true, feuille_route:true, risques:true, livrables:false, objectifs:false, participation:false, sessions:5, date_gouvernance:'18/01/2025', date_feuille_route:'25/01/2025', date_risques:'07/02/2025' },
+  { id:'CDP005', nom:'Estelle DOSSOU', departement:'DPSI', gouvernance:true, feuille_route:true, risques:false, livrables:false, objectifs:false, participation:false, sessions:4, date_gouvernance:'19/01/2025', date_feuille_route:'26/01/2025' },
+  { id:'CDP006', nom:'Fabrice GNIMASSOU', departement:'DIT', gouvernance:true, feuille_route:false, risques:false, livrables:false, objectifs:false, participation:true, sessions:6, date_gouvernance:'20/01/2025', date_participation:'21/02/2025' },
+  { id:'CDP007', nom:'Grâce AHOMADEGBE', departement:'DSI', gouvernance:true, feuille_route:false, risques:false, livrables:false, objectifs:false, participation:false, sessions:3, date_gouvernance:'21/01/2025' },
+  { id:'CDP008', nom:'Henri TOKPO', departement:'DPSI', gouvernance:false, feuille_route:true, risques:false, livrables:false, objectifs:false, participation:false, sessions:2, date_feuille_route:'27/01/2025' },
+  { id:'CDP009', nom:'Irène BIAO', departement:'DIT', gouvernance:false, feuille_route:false, risques:false, livrables:false, objectifs:false, participation:false, sessions:1 },
+  { id:'CDP010', nom:'Jules ADJAKOU', departement:'DSI', gouvernance:true, feuille_route:true, risques:true, livrables:true, objectifs:false, participation:false, sessions:5, date_gouvernance:'22/01/2025', date_feuille_route:'28/01/2025', date_risques:'08/02/2025', date_livrables:'14/02/2025' },
+];
+
+// ── STATE ──
+let allUsers = [];
+let allAmbassadors = [];
+let currentUser = null;
+
+// ── PARSE CSV ──
+function parseCSV(csv) {
+  const lines = csv.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+  return lines.slice(1).filter(line => line.trim()).map(line => {
+    // Handle quoted CSV fields
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '"') { inQuotes = !inQuotes; }
+      else if (line[i] === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
+      else { current += line[i]; }
+    }
+    values.push(current.trim());
+
+    const obj = {};
+    headers.forEach((h, i) => {
+      let val = (values[i] || '').replace(/^["']|["']$/g, '');
+      if (val.toUpperCase() === 'TRUE' || val === '1') val = true;
+      else if (val.toUpperCase() === 'FALSE' || val === '0' || val === '') val = false;
+      if (h === 'sessions') val = parseInt(val) || 0;
+      obj[h] = val;
+    });
+    return obj;
+  });
+}
+
+// ── FETCH DATA ──
+async function loadData() {
+  if (DEMO_MODE) {
+    allUsers = DEMO_DATA;
+    allAmbassadors = DEMO_AMBASSADORS;
+    onDataLoaded();
+    return;
+  }
+  try {
+    // Charger les 2 onglets en parallèle
+    const [respUsers, respAmbassadors] = await Promise.all([
+      fetch(SHEET_CSV_URL),
+      fetch(SHEET_AMBASSADORS_URL).catch(() => null)
+    ]);
+    if (!respUsers.ok) throw new Error(`HTTP ${respUsers.status}`);
+    const csvUsers = await respUsers.text();
+    allUsers = parseCSV(csvUsers);
+    if (allUsers.length === 0) throw new Error('Aucune donnée trouvée');
+
+    // Ambassadeurs (optionnel — ne bloque pas si absent)
+    if (respAmbassadors && respAmbassadors.ok) {
+      const csvAmb = await respAmbassadors.text();
+      allAmbassadors = parseCSV(csvAmb);
+    }
+    onDataLoaded();
+  } catch (err) {
+    console.error('Erreur chargement:', err);
+    document.getElementById('loading-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.querySelector('.main').innerHTML = `
+      <div class="error-card">
+        <h3>⚠️ Erreur de chargement</h3>
+        <p>Impossible de charger les données depuis Google Sheet.</p>
+        <p style="margin-top:12px"><code>${err.message}</code></p>
+        <p style="margin-top:16px;font-size:12px;">Vérifiez que le Google Sheet est bien publié en CSV et que l'URL est correcte dans le fichier HTML.</p>
+      </div>`;
+  }
+}
+
+function onDataLoaded() {
+  document.getElementById('loading-screen').classList.add('hidden');
+
+  // Check URL param pour lien personnalisé
+  const params = new URLSearchParams(window.location.search);
+  const urlId = params.get('id');
+  if (urlId) {
+    const user = allUsers.find(u => u.id === urlId);
+    if (user) { currentUser = user; }
+  }
+  // Si pas d'id en URL, prendre le premier utilisateur par défaut
+  if (!currentUser && allUsers.length > 0) {
+    currentUser = allUsers[0];
+  }
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('app').classList.remove('hidden');
+  updateHeader();
+  renderLeaderboard();
+  renderPassport();
+  renderProcess();
+}
+
+// ── HELPERS ──
+function getInitials(name) {
+  return (name || '').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+}
+
+function getBadgeCount(user) {
+  return BADGES_CONFIG.filter(b => user[b.id] === true).length;
+}
+
+function getLevel(count) {
+  return LEVELS.find(l => count >= l.min && count <= l.max) || LEVELS[0];
+}
+
+function getProgress(user) {
+  return Math.round((getBadgeCount(user) / BADGES_CONFIG.length) * 100);
+}
+
+// ── HEADER ──
+function updateHeader() {
+  // Plus d'identification individuelle - accès direct au classement
+}
+
+// ── VIEW SWITCHING ──
+function switchView(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view-${viewName}`).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewName));
+}
+
+// ── RENDER PASSPORT ──
+function renderPassport() {
+  const user = currentUser;
+  const badgeCount = getBadgeCount(user);
+  const level = getLevel(badgeCount);
+  const progress = getProgress(user);
+  const nextLevel = LEVELS.find(l => l.min > badgeCount);
+
+  const circumference = 2 * Math.PI * 43;
+  const offset = circumference - (progress / 100) * circumference;
+
+  let badgesHTML = BADGES_CONFIG.map(badge => {
+    const unlocked = user[badge.id] === true;
+    const dateKey = `date_${badge.id}`;
+    const date = user[dateKey] || '';
+    return `
+      <div class="badge-item ${unlocked ? 'unlocked' : 'locked'}"
+           style="${unlocked ? `background: linear-gradient(145deg, ${badge.color}12, ${badge.color}06); border-color: ${badge.color}50; box-shadow: 0 4px 12px ${badge.color}12;` : ''}">
+        <div class="badge-icon">${badge.icon}</div>
+        <div class="badge-name" style="color: ${unlocked ? badge.color : '#90a4ae'}">${badge.name}</div>
+        ${unlocked ? `<div class="badge-check">✓</div>` : ''}
+        ${unlocked && date ? `<div class="badge-date">${date}</div>` : ''}
+        <div class="badge-tooltip">${unlocked ? '✅ Débloqué !' : badge.requirement}</div>
+      </div>`;
+  }).join('');
+
+  let nextHint = '';
+  if (nextLevel) {
+    const remaining = nextLevel.min - badgeCount;
+    nextHint = `Encore ${remaining} badge${remaining > 1 ? 's' : ''} pour atteindre le niveau <strong>${nextLevel.name}</strong>`;
+  } else {
+    nextHint = `<span style="color:var(--gold);font-weight:700">🌟 Félicitations ! Niveau maximum atteint !</span>`;
+  }
+
+  document.getElementById('view-passport').innerHTML = `
+    <div class="passport-header">
+      <div class="avatar-ring">
+        <svg width="96" height="96">
+          <circle cx="48" cy="48" r="43" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="5" transform="rotate(-90 48 48)"/>
+          <circle cx="48" cy="48" r="43" fill="none" stroke="${level.color}" stroke-width="5"
+            stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"
+            transform="rotate(-90 48 48)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)"/>
+        </svg>
+        <div class="avatar-inner" style="background: linear-gradient(135deg, ${level.color}, ${level.color}bb)">
+          ${getInitials(user.nom)}
+        </div>
+      </div>
+      <div class="passport-info">
+        <div class="label">Passeport ASIN</div>
+        <div class="name">${user.nom}</div>
+        <div class="meta">${user.departement} • ${user.sessions || 0} sessions</div>
+      </div>
+      <div class="passport-level">
+        <div class="lbl">Niveau</div>
+        <div class="level-name" style="color:${level.color}">${level.name}</div>
+        <div class="badge-count">${badgeCount}<small> / ${BADGES_CONFIG.length}</small></div>
+      </div>
+    </div>
+
+    <div class="progress-card">
+      <div class="progress-top">
+        <span class="label">Progression globale</span>
+        <span class="pct">${progress}%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${progress}%"></div>
+      </div>
+      <div class="progress-hint">${nextHint}</div>
+    </div>
+
+    <div class="badges-card">
+      <h3>Mes Badges</h3>
+      <div class="badges-grid">${badgesHTML}</div>
+    </div>`;
+}
+
+// ── RENDER LEADERBOARD ──
+function renderLeaderboard() {
+  const sorted = [...allUsers].sort((a, b) => getBadgeCount(b) - getBadgeCount(a) || (b.sessions || 0) - (a.sessions || 0));
+  const totalBadges = allUsers.reduce((s, u) => s + getBadgeCount(u), 0);
+  const avgPct = Math.round((totalBadges / (allUsers.length * BADGES_CONFIG.length)) * 100);
+
+  // Stats
+  const statsHTML = [
+    { label: '👥 Chefs de Projet', value: allUsers.length, color: 'var(--navy)' },
+    { label: '🏅 Badges débloqués', value: totalBadges, color: 'var(--gold)' },
+    { label: '📊 Taux complétion', value: avgPct + '%', color: 'var(--teal)' },
+  ].map(s => `
+    <div class="stat-card" style="border-left-color:${s.color}">
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value" style="color:${s.color}">${s.value}</div>
+    </div>`).join('');
+
+  // Podium
+  const podiumOrder = [sorted[1], sorted[0], sorted[2]].filter(Boolean);
+  const podiumConfig = [
+    { height: 100, medal: '🥈', rank: 2 },
+    { height: 140, medal: '🥇', rank: 1 },
+    { height: 80, medal: '🥉', rank: 3 },
+  ];
+  const podiumHTML = podiumOrder.map((user, i) => {
+    const cfg = podiumConfig[i];
+    const level = getLevel(getBadgeCount(user));
+    return `
+      <div class="podium-item" onclick="selectUserFromLeaderboard('${user.id}')">
+        <div class="podium-medal">${cfg.medal}</div>
+        <div class="podium-avatar" style="background:linear-gradient(135deg,${level.color},${level.color}bb);border:3px solid ${level.color}40">
+          ${getInitials(user.nom)}
+        </div>
+        <div class="podium-name">${user.nom.split(' ')[0]}</div>
+        <div class="podium-badges">${getBadgeCount(user)}/${BADGES_CONFIG.length} badges</div>
+        <div class="podium-bar" style="height:${cfg.height}px">${cfg.rank}</div>
+      </div>`;
+  }).join('');
+
+  // Ranking
+  const rankingHTML = sorted.map((user, i) => {
+    const level = getLevel(getBadgeCount(user));
+    const pct = getProgress(user);
+    const isMe = user.id === currentUser.id;
+    const badgeIcons = BADGES_CONFIG.map(b => {
+      const has = user[b.id];
+      const tip = has ? `✅ ${b.name}` : `🔒 ${b.name}`;
+      return `<span class="${has ? '' : 'off'}">${b.icon}<span class="rb-tip">${tip}</span></span>`;
+    }).join('');
+    return `
+      <div class="ranking-row ${isMe ? 'highlight' : ''}" onclick="selectUserFromLeaderboard('${user.id}')">
+        <div class="rank-num ${i < 3 ? 'top3' : 'normal'}">#${i + 1}</div>
+        <div class="rank-avatar" style="background:linear-gradient(135deg,${level.color},${level.color}bb)">${getInitials(user.nom)}</div>
+        <div class="rank-info">
+          <div class="rname">${user.nom}${isMe ? ' <span style="font-size:11px;color:var(--teal)">(vous)</span>' : ''}</div>
+          <div class="rmeta">${user.departement} • ${level.name}</div>
+        </div>
+        <div class="rank-badges">${badgeIcons}</div>
+        <div class="rank-progress">
+          <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="rank-pct">${pct}%</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('view-leaderboard').innerHTML = `
+    <div class="stats-row">${statsHTML}</div>
+    <div class="podium-card">
+      <h3>🏆 Podium</h3>
+      <div class="podium">${podiumHTML}</div>
+    </div>
+    <div class="ranking-card">
+      <h3>Classement complet</h3>
+      ${rankingHTML}
+    </div>`;
+}
+
+function selectUserFromLeaderboard(userId) {
+  currentUser = allUsers.find(u => u.id === userId);
+  updateHeader();
+  renderPassport();
+  switchView('passport');
+}
+
+// ── RENDER PROCESS ──
+function renderProcess() {
+  const steps = [
+    {
+      num: '1',
+      icon: '📅',
+      color: 'var(--teal)',
+      title: 'Participez aux ateliers du vendredi',
+      desc: 'Chaque vendredi, une session de prise en main est organisée par le PMO. C\'est le point de départ pour comprendre l\'outil et ses modules.',
+      details: '🕐 Quand : Tous les vendredis (horaire communiqué par email)<br>📍 Où : Salle de formation / Visioconférence<br>👤 Animé par : L\'équipe PMO<br>📝 Au programme : Prise en main d\'un module, démonstration, exercices pratiques'
+    },
+    {
+      num: '2',
+      icon: '🤝',
+      color: '#6a1b9a',
+      title: 'Travaillez avec votre ambassadeur',
+      desc: 'Chaque direction a un ou plusieurs ambassadeurs ASIN formés en avance. Ils vous accompagnent au quotidien pour mettre à jour votre projet dans l\'outil.',
+      details: 'AMBASSADEUR_WIDGET'
+    },
+    {
+      num: '3',
+      icon: '📋',
+      color: 'var(--navy-light)',
+      title: 'Faites un point avec le PMO',
+      desc: 'Une fois un module complété dans l\'outil, planifiez un point de revue avec le PMO pour valider la qualité et la complétude des données.',
+      details: '✅ Le PMO vérifie : la complétude des informations, la cohérence des données, la qualité de la saisie<br>📊 Si tout est conforme → le PMO valide votre badge !'
+    },
+    {
+      num: '4',
+      icon: '🏅',
+      color: 'var(--gold)',
+      title: 'Badge validé par le PMO !',
+      desc: 'Le PMO est le seul habilité à valider un badge. La validation est basée sur la qualité de votre travail dans l\'outil, pas juste la présence des données.',
+      details: '🎯 Critères de validation :<br>• <strong>Complétude</strong> — Toutes les informations requises sont renseignées<br>• <strong>Qualité</strong> — Les données sont cohérentes et exploitables<br>• <strong>Actualité</strong> — Les informations sont à jour<br>🔄 Si des corrections sont nécessaires, le PMO vous guide pour les effectuer'
+    },
+  ];
+
+  // Build ambassadeur widget
+  const poles = [...new Set(allAmbassadors.map(a => a.pole))].sort();
+  const poleOptions = poles.map(p => `<option value="${p}">${p}</option>`).join('');
+  const ambassadorWidget = `
+    <div class="amb-widget">
+      <div style="font-size:13px;color:var(--text-dark);font-weight:600;margin-bottom:10px;">📍 Sélectionnez votre pôle pour trouver votre ambassadeur :</div>
+      <select id="pole-select" onchange="filterAmbassadors(this.value)" style="width:100%;padding:10px 14px;border:2px solid #e0e7ef;border-radius:10px;font-size:14px;font-family:inherit;background:#fff;color:var(--text-dark);outline:none;cursor:pointer;margin-bottom:12px;">
+        <option value="">— Choisir mon pôle —</option>
+        ${poleOptions}
+      </select>
+      <div id="amb-results"></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">💡 N'hésitez pas à contacter votre ambassadeur entre les sessions !</div>
+    </div>`;
+
+  const stepsHTML = steps.map((step, i) => {
+    const arrow = i < steps.length - 1 ? '<div class="step-arrow">▼</div>' : '';
+    const detailsContent = step.details === 'AMBASSADEUR_WIDGET' ? ambassadorWidget : `<div class="step-details">${step.details}</div>`;
+    return `
+      <div class="process-step" style="border-left-color: ${step.color}">
+        <div class="step-number" style="background: ${step.color}">${step.icon}</div>
+        <div class="step-content">
+          <h4>Étape ${step.num} — ${step.title}</h4>
+          <p>${step.desc}</p>
+          ${detailsContent}
+        </div>
+      </div>
+      ${arrow}`;
+  }).join('');
+
+  const badgeRequirements = BADGES_CONFIG.map(badge => `
+    <div class="pbadge-row">
+      <div class="pbadge-icon">${badge.icon}</div>
+      <div class="pbadge-info">
+        <div class="pbname">${badge.name}</div>
+        <div class="pbreq">${badge.requirement}</div>
+      </div>
+      <div class="pbadge-tag" style="background:${badge.color}">${currentUser && currentUser[badge.id] ? '✅ Obtenu' : '🔒 À débloquer'}</div>
+    </div>`).join('');
+
+  document.getElementById('view-process').innerHTML = `
+    <div class="process-hero">
+      <h2>📋 Comment obtenir ses badges ?</h2>
+      <p>Le Passeport ASIN récompense votre maîtrise de l'outil de gestion des projets. Voici le parcours en 4 étapes pour débloquer vos badges et monter en niveau.</p>
+    </div>
+
+    <div class="process-timeline">
+      ${stepsHTML}
+    </div>
+
+    <div class="process-badge-grid">
+      <h3>🎯 Les 6 badges à débloquer</h3>
+      <div class="pbadge-list">
+        ${badgeRequirements}
+      </div>
+    </div>
+
+    <div class="process-cta">
+      <h3>🚀 Prêt à progresser ?</h3>
+      <p>Rendez-vous à la prochaine session du vendredi ou contactez votre ambassadeur pour commencer !</p>
+    </div>`;
+}
+
+// ── FILTER AMBASSADORS ──
+function filterAmbassadors(pole) {
+  const container = document.getElementById('amb-results');
+  if (!pole) { container.innerHTML = ''; return; }
+  const matched = allAmbassadors.filter(a => a.pole === pole);
+  if (matched.length === 0) {
+    container.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:13px;">Aucun ambassadeur trouvé pour ce pôle.</div>';
+    return;
+  }
+  container.innerHTML = matched.map(a => `
+    <div class="amb-card">
+      <div class="amb-avatar">${(a.nom || '').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase()}</div>
+      <div class="amb-info">
+        <div class="amb-name">${a.nom}</div>
+        <div class="amb-pole">${a.pole}</div>
+      </div>
+      <div class="amb-contact">
+        ${a.email ? `<a href="mailto:${a.email}" class="amb-btn" title="${a.email}">✉️ Email</a>` : ''}
+        ${a.telephone ? `<a href="tel:${a.telephone}" class="amb-btn" title="${a.telephone}">📞 ${a.telephone}</a>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', loadData);
+
+// Allow Enter key
+</script>
+</body>
+</html>
