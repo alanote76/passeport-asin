@@ -64,106 +64,12 @@ body {
   cursor: pointer; transition: all 0.25s; font-family: inherit; background: transparent; color: rgba(255,255,255,0.65);
 }
 .tab-btn.active { background: #fff; color: var(--navy); }
-.header-user { display: flex; align-items: center; gap: 10px; color: #fff; }
-.header-user .avatar-sm {
-  width: 34px; height: 34px; border-radius: 50%; background: var(--teal);
-  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;
-}
-.header-user span { font-size: 13px; font-weight: 600; }
-.btn-logout {
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7);
-  padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer; font-family: inherit; transition: all 0.2s;
-}
-.btn-logout:hover { background: rgba(255,255,255,0.15); color: #fff; }
 
 /* ── MAIN ── */
 .main { max-width: 920px; margin: 0 auto; padding: 28px 20px; }
 .view { display: none; }
 .view.active { display: block; animation: fadeUp 0.4s ease; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ── PASSPORT VIEW ── */
-.passport-header {
-  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, var(--teal) 100%);
-  border-radius: 20px; padding: 32px 36px; color: #fff;
-  display: flex; align-items: center; gap: 28px; margin-bottom: 24px; position: relative; overflow: hidden;
-}
-.passport-header::before {
-  content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px;
-  border-radius: 50%; background: rgba(255,255,255,0.04);
-}
-.passport-header::after {
-  content: ''; position: absolute; bottom: -60px; right: 100px; width: 140px; height: 140px;
-  border-radius: 50%; background: rgba(255,255,255,0.025);
-}
-.avatar-ring { position: relative; flex-shrink: 0; }
-.avatar-ring svg { transform: rotate(-90deg); }
-.avatar-ring .avatar-inner {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-size: 22px; font-weight: 800; color: #fff; letter-spacing: 1px;
-}
-.passport-info { flex: 1; z-index: 1; }
-.passport-info .label { font-size: 12px; opacity: 0.6; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
-.passport-info .name { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
-.passport-info .meta { font-size: 14px; opacity: 0.75; margin-top: 2px; }
-.passport-level {
-  text-align: center; z-index: 1;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 14px; padding: 12px 24px;
-}
-.passport-level .lbl { font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1.5px; }
-.passport-level .level-name { font-size: 18px; font-weight: 800; margin-top: 2px; }
-.passport-level .badge-count { font-size: 28px; font-weight: 900; margin-top: 4px; }
-.passport-level .badge-count small { font-size: 14px; opacity: 0.5; }
-
-/* Progress bar */
-.progress-card {
-  background: var(--white); border-radius: var(--radius); padding: 20px 28px;
-  margin-bottom: 24px; box-shadow: var(--shadow);
-}
-.progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.progress-top .label { font-size: 14px; font-weight: 700; }
-.progress-top .pct { font-size: 14px; font-weight: 800; color: var(--teal); }
-.progress-bar { height: 10px; border-radius: 5px; background: #e8edf2; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--teal), var(--teal-light)); transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
-.progress-hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
-.progress-hint strong { color: var(--gold); }
-
-/* Badges grid */
-.badges-card {
-  background: var(--white); border-radius: var(--radius); padding: 28px;
-  box-shadow: var(--shadow);
-}
-.badges-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
-.badges-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
-.badge-item {
-  width: 140px; height: 175px; border-radius: 16px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  cursor: pointer; transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); position: relative; flex-shrink: 0;
-}
-.badge-item.unlocked { border: 2px solid; }
-.badge-item.locked { background: #e8edf2; border: 2px dashed #cfd8dc; opacity: 0.5; }
-.badge-item.unlocked:hover { transform: translateY(-6px) scale(1.03); }
-.badge-item .badge-icon { font-size: 42px; transition: transform 0.3s; }
-.badge-item:hover .badge-icon { transform: scale(1.15) rotate(5deg); }
-.badge-item.locked .badge-icon { filter: grayscale(1); }
-.badge-item .badge-name { font-size: 11.5px; font-weight: 700; text-align: center; padding: 0 8px; letter-spacing: 0.02em; }
-.badge-item .badge-check {
-  position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border-radius: 50%;
-  background: var(--success); display: flex; align-items: center; justify-content: center;
-  font-size: 11px; color: #fff;
-}
-.badge-item .badge-date {
-  font-size: 10px; color: var(--text-muted); font-weight: 500;
-}
-.badge-tooltip {
-  position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%);
-  background: var(--navy-dark); color: #fff; padding: 6px 12px; border-radius: 8px;
-  font-size: 11px; white-space: nowrap; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  opacity: 0; pointer-events: none; transition: opacity 0.2s;
-}
-.badge-item:hover .badge-tooltip { opacity: 1; }
 
 /* ── LEADERBOARD VIEW ── */
 .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
@@ -181,7 +87,7 @@ body {
 }
 .podium-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 24px; }
 .podium { display: flex; justify-content: center; align-items: flex-end; gap: 20px; }
-.podium-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.3s; }
+.podium-item { display: flex; flex-direction: column; align-items: center; transition: transform 0.3s; }
 .podium-item:hover { transform: scale(1.05); }
 .podium-medal { font-size: 28px; margin-bottom: 8px; }
 .podium-avatar {
@@ -197,6 +103,32 @@ body {
   color: #fff; font-size: 24px; font-weight: 900;
 }
 
+/* ── CLASSEMENT PAR PÔLE ── */
+.poles-card {
+  background: var(--white); border-radius: var(--radius); padding: 28px;
+  margin-bottom: 24px; box-shadow: var(--shadow);
+}
+.poles-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+.pole-row {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+  border-radius: 12px; margin-bottom: 6px; transition: background 0.2s;
+}
+.pole-row:hover { background: #f5f8fb; }
+.pole-rank { width: 28px; font-size: 14px; font-weight: 800; }
+.pole-name-badge {
+  min-width: 80px; padding: 6px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 800; color: #fff; text-align: center;
+  letter-spacing: 0.5px;
+}
+.pole-details { flex: 1; }
+.pole-details .pole-stats { font-size: 12px; color: var(--text-muted); }
+.pole-details .pole-stats strong { color: var(--text-dark); }
+.pole-bar-wrap { width: 140px; }
+.pole-bar-bg { height: 8px; border-radius: 4px; background: #e8edf2; overflow: hidden; }
+.pole-bar-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+.pole-pct { font-size: 15px; font-weight: 900; width: 50px; text-align: right; }
+.pole-medal { font-size: 18px; width: 28px; text-align: center; }
+
 /* Ranking list */
 .ranking-card {
   background: var(--white); border-radius: var(--radius); padding: 28px;
@@ -205,7 +137,7 @@ body {
 .ranking-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
 .ranking-row {
   display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px;
-  cursor: pointer; transition: background 0.2s; border: 2px solid transparent; margin-bottom: 4px;
+  transition: background 0.2s; border: 2px solid transparent; margin-bottom: 4px;
 }
 .ranking-row:hover { background: #f5f8fb; }
 .ranking-row.highlight { background: rgba(26,58,92,0.04); border-color: rgba(26,58,92,0.12); }
@@ -240,14 +172,13 @@ body {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 700px) {
-  .passport-header { flex-direction: column; text-align: center; padding: 24px 20px; gap: 16px; }
-  .passport-level { width: 100%; }
   .stats-row { grid-template-columns: 1fr; }
   .podium { gap: 10px; }
   .podium-bar { width: 70px; }
   .header { flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
   .rank-badges { display: none; }
-  .badge-item { width: 120px; height: 155px; }
+  .pole-bar-wrap { width: 80px; }
+  .pole-details .pole-stats { font-size: 11px; }
 }
 
 /* ── PROCESS / COMMENT PROGRESSER ── */
@@ -366,8 +297,6 @@ body {
   <div style="font-size:13px;opacity:0.6;">Chargement des données...</div>
 </div>
 
-<!-- IDENTIFICATION SCREEN supprimé — accès direct au classement -->
-
 <!-- MAIN APP -->
 <div id="app" class="hidden">
   <div class="header">
@@ -400,36 +329,13 @@ body {
 
 <script>
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  CONFIGURATION — MODIFIE ICI L'URL DE TON GOOGLE SHEET     ║
+// ║  CONFIGURATION — URLs Google Sheet                          ║
 // ╚══════════════════════════════════════════════════════════════╝
-//
-// INSTRUCTIONS :
-// 1. Crée un Google Sheet avec les colonnes suivantes (ligne 1 = en-têtes) :
-//    id | nom | departement | gouvernance | feuille_route | risques | livrables | objectifs | participation | date_gouvernance | date_feuille_route | date_risques | date_livrables | date_objectifs | date_participation | sessions
-//
-// 2. Remplis les données (TRUE/FALSE pour les badges, dates au format JJ/MM/AAAA)
-//
-// 3. Fichier > Partager > Publier sur le Web > Format CSV > Copie le lien
-//
-// 4. Colle le lien ci-dessous :
 
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl9kelbQnTFP43Elf6z6tt_FASYUDwrPd0FA0tHxhvLPzu5UhbyGdry1f1lhrC4TKH2rVDDv/pub?gid=2103561916&single=true&output=csv';
 
-// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=0&single=true&output=csv'
-//
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  ONGLET 2 : AMBASSADEURS                                    ║
-// ╠══════════════════════════════════════════════════════════════╣
-// ║  Crée un 2ème onglet "Ambassadeurs" dans le même Sheet      ║
-// ║  Colonnes : pole | nom | email | telephone                  ║
-// ║  Puis : Fichier > Publier sur le Web > Onglet Ambassadeurs  ║
-// ║  > CSV > Colle le lien ci-dessous                           ║
-// ╚══════════════════════════════════════════════════════════════╝
-
 const SHEET_AMBASSADORS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl9kelbQnTFP43Elf6z6tt_FASYUDwrPd0FA0tHxhvLPzu5UhbyGdry1f1lhrC4TKH2rVDDv/pub?gid=1309559412&single=true&output=csv';
 
-// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=123456&single=true&output=csv'
-//
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  MODE DEMO — Données fictives si pas de Google Sheet        ║
 // ╚══════════════════════════════════════════════════════════════╝
@@ -490,7 +396,6 @@ function parseCSV(csv) {
   if (lines.length < 2) return [];
   const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
   return lines.slice(1).filter(line => line.trim()).map(line => {
-    // Handle quoted CSV fields
     const values = [];
     let current = '';
     let inQuotes = false;
@@ -522,7 +427,6 @@ async function loadData() {
     return;
   }
   try {
-    // Charger les 2 onglets en parallèle
     const [respUsers, respAmbassadors] = await Promise.all([
       fetch(SHEET_CSV_URL),
       fetch(SHEET_AMBASSADORS_URL).catch(() => null)
@@ -532,7 +436,6 @@ async function loadData() {
     allUsers = parseCSV(csvUsers);
     if (allUsers.length === 0) throw new Error('Aucune donnée trouvée');
 
-    // Ambassadeurs (optionnel — ne bloque pas si absent)
     if (respAmbassadors && respAmbassadors.ok) {
       const csvAmb = await respAmbassadors.text();
       allAmbassadors = parseCSV(csvAmb);
@@ -554,15 +457,12 @@ async function loadData() {
 
 function onDataLoaded() {
   document.getElementById('loading-screen').classList.add('hidden');
-
-  // Check URL param pour lien personnalisé
   const params = new URLSearchParams(window.location.search);
   const urlId = params.get('id');
   if (urlId) {
     const user = allUsers.find(u => u.id === urlId);
     if (user) { currentUser = user; }
   }
-  // Si pas d'id en URL, prendre le premier utilisateur par défaut
   if (!currentUser && allUsers.length > 0) {
     currentUser = allUsers[0];
   }
@@ -571,7 +471,6 @@ function onDataLoaded() {
 
 function showApp() {
   document.getElementById('app').classList.remove('hidden');
-  updateHeader();
   renderLeaderboard();
   renderProcess();
 }
@@ -591,11 +490,6 @@ function getLevel(count) {
 
 function getProgress(user) {
   return Math.round((getBadgeCount(user) / BADGES_CONFIG.length) * 100);
-}
-
-// ── HEADER ──
-function updateHeader() {
-  // Plus d'identification individuelle - accès direct au classement
 }
 
 // ── VIEW SWITCHING ──
@@ -644,11 +538,51 @@ function renderLeaderboard() {
       </div>`;
   }).join('');
 
-  // Ranking
+  // Classement par pôle
+  const poleMap = {};
+  allUsers.forEach(u => {
+    const dept = u.departement || 'Autre';
+    if (!poleMap[dept]) poleMap[dept] = [];
+    poleMap[dept].push(u);
+  });
+
+  const poleColors = {
+    'IN': '#1565c0', 'SID-DEP': '#6a1b9a', 'SID-DSA': '#c62828',
+    'SN': '#2e7d32', 'CASE': '#e65100', 'DAF': '#f5a623', 'PRMP': '#00838f'
+  };
+
+  const poleRanking = Object.entries(poleMap).map(([pole, users]) => {
+    const totalBadgesPole = users.reduce((s, u) => s + getBadgeCount(u), 0);
+    const maxBadges = users.length * BADGES_CONFIG.length;
+    const pct = Math.round((totalBadgesPole / maxBadges) * 100);
+    const avgBadges = (totalBadgesPole / users.length).toFixed(1);
+    return { pole, users, totalBadges: totalBadgesPole, pct, avgBadges, count: users.length };
+  }).sort((a, b) => b.pct - a.pct || b.totalBadges - a.totalBadges);
+
+  const poleMedals = ['🥇', '🥈', '🥉'];
+  const poleRankingHTML = poleRanking.map((p, i) => {
+    const color = poleColors[p.pole] || 'var(--navy)';
+    const barColor = i === 0 ? 'var(--gold)' : (i === 1 ? 'var(--silver)' : (i === 2 ? 'var(--bronze)' : 'var(--teal)'));
+    return `
+      <div class="pole-row">
+        <div class="pole-medal">${i < 3 ? poleMedals[i] : ''}</div>
+        <div class="pole-rank" style="color:${i < 3 ? 'var(--gold)' : 'var(--text-muted)'}">#${i + 1}</div>
+        <div class="pole-name-badge" style="background:${color}">${p.pole}</div>
+        <div class="pole-details">
+          <div class="pole-stats"><strong>${p.count}</strong> CDP • <strong>${p.avgBadges}</strong> badges/pers. • <strong>${p.totalBadges}</strong> badges au total</div>
+        </div>
+        <div class="pole-bar-wrap">
+          <div class="pole-bar-bg"><div class="pole-bar-fill" style="width:${p.pct}%;background:${barColor}"></div></div>
+        </div>
+        <div class="pole-pct" style="color:${color}">${p.pct}%</div>
+      </div>`;
+  }).join('');
+
+  // Ranking individuel
   const rankingHTML = sorted.map((user, i) => {
     const level = getLevel(getBadgeCount(user));
     const pct = getProgress(user);
-    const isMe = user.id === currentUser.id;
+    const isMe = currentUser && user.id === currentUser.id;
     const badgeIcons = BADGES_CONFIG.map(b => {
       const has = user[b.id];
       if (b.id === 'participation') {
@@ -679,11 +613,15 @@ function renderLeaderboard() {
   document.getElementById('view-leaderboard').innerHTML = `
     <div class="stats-row">${statsHTML}</div>
     <div class="podium-card">
-      <h3>🏆 Podium</h3>
+      <h3>🏆 Podium individuel</h3>
       <div class="podium">${podiumHTML}</div>
     </div>
+    <div class="poles-card">
+      <h3>🏢 Classement par pôle</h3>
+      ${poleRankingHTML}
+    </div>
     <div class="ranking-card">
-      <h3>Classement complet</h3>
+      <h3>Classement individuel complet</h3>
       ${rankingHTML}
     </div>`;
 }
@@ -767,7 +705,7 @@ function renderProcess() {
   document.getElementById('view-process').innerHTML = `
     <div class="process-hero">
       <h2>📋 Comment obtenir ses badges ?</h2>
-      <p>Le Passeport ASIN récompense votre maîtrise de l'outil de gestion des projets. Voici le parcours en 4 étapes pour débloquer vos badges et monter en niveau.</p>
+      <p>Le Passeport OPII récompense votre maîtrise de l'outil de pilotage des projets. Voici le parcours en 4 étapes pour débloquer vos badges et monter en niveau.</p>
     </div>
 
     <div class="process-timeline">
@@ -812,8 +750,6 @@ function filterAmbassadors(pole) {
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', loadData);
-
-// Allow Enter key
 </script>
 </body>
 </html>
