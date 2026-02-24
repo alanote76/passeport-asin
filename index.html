@@ -380,7 +380,6 @@ body {
     </div>
     <div class="tab-switch">
       <button class="tab-btn active" data-view="leaderboard" onclick="switchView('leaderboard')">🏆 Classement</button>
-      <button class="tab-btn" data-view="passport" onclick="switchView('passport')">🛂 Mon Passeport</button>
       <button class="tab-btn" data-view="process" onclick="switchView('process')">📋 Comment progresser ?</button>
     </div>
     <div class="header-user">
@@ -391,9 +390,6 @@ body {
   <div class="main">
     <!-- LEADERBOARD VIEW (page d'accueil) -->
     <div id="view-leaderboard" class="view active"></div>
-
-    <!-- PASSPORT VIEW -->
-    <div id="view-passport" class="view"></div>
 
     <!-- PROCESS VIEW -->
     <div id="view-process" class="view"></div>
@@ -419,7 +415,7 @@ body {
 
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl9kelbQnTFP43Elf6z6tt_FASYUDwrPd0FA0tHxhvLPzu5UhbyGdry1f1lhrC4TKH2rVDDv/pub?gid=2103561916&single=true&output=csv';
 
-// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl9kelbQnTFP43Elf6z6tt_FASYUDwrPd0FA0tHxhvLPzu5UhbyGdry1f1lhrC4TKH2rVDDv/pub?gid=2103561916&single=true&output=csv'
+// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=0&single=true&output=csv'
 //
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  ONGLET 2 : AMBASSADEURS                                    ║
@@ -432,7 +428,7 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl
 
 const SHEET_AMBASSADORS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl9kelbQnTFP43Elf6z6tt_FASYUDwrPd0FA0tHxhvLPzu5UhbyGdry1f1lhrC4TKH2rVDDv/pub?gid=1309559412&single=true&output=csv';
 
-// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl9kelbQnTFP43Elf6z6tt_FASYUDwrPd0FA0tHxhvLPzu5UhbyGdry1f1lhrC4TKH2rVDDv/pub?gid=1309559412&single=true&output=csv'
+// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=123456&single=true&output=csv'
 //
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  MODE DEMO — Données fictives si pas de Google Sheet        ║
@@ -458,7 +454,7 @@ const BADGES_CONFIG = [
   { id: 'risques', name: 'Risques & Points Durs', icon: '⚠️', color: '#e65100', requirement: 'Min. 3 risques documentés avec actions' },
   { id: 'livrables', name: 'Livrables', icon: '📦', color: '#6a1b9a', requirement: 'Liste livrables avec dates et responsables' },
   { id: 'objectifs', name: 'Planification Gouvernance', icon: '🎯', color: '#1565c0', requirement: 'Sessions de gouvernance planifiées et tenues' },
-  { id: 'participation', name: 'Assidu PMO', icon: '🎓', color: '#f5a623', requirement: 'Min. 4 sessions du vendredi' },
+  { id: 'participation', name: 'Participation Ateliers', icon: '🎓', color: '#f5a623', requirement: 'Min. 4 sessions du vendredi' },
 ];
 
 const SESSIONS_REQUIRED = 4;
@@ -577,7 +573,6 @@ function showApp() {
   document.getElementById('app').classList.remove('hidden');
   updateHeader();
   renderLeaderboard();
-  renderPassport();
   renderProcess();
 }
 
@@ -610,96 +605,6 @@ function switchView(viewName) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewName));
 }
 
-// ── RENDER PASSPORT ──
-function renderPassport() {
-  const user = currentUser;
-  const badgeCount = getBadgeCount(user);
-  const level = getLevel(badgeCount);
-  const progress = getProgress(user);
-  const nextLevel = LEVELS.find(l => l.min > badgeCount);
-
-  const circumference = 2 * Math.PI * 43;
-  const offset = circumference - (progress / 100) * circumference;
-
-  let badgesHTML = BADGES_CONFIG.map(badge => {
-    const unlocked = user[badge.id] === true;
-    const dateKey = `date_${badge.id}`;
-    const date = user[dateKey] || '';
-    let sessionIndicator = '';
-    if (badge.id === 'participation') {
-      const sess = user.sessions || 0;
-      const sessColor = sess >= SESSIONS_REQUIRED ? 'var(--success)' : 'var(--gold)';
-      const sessPct = Math.min(100, Math.round((sess / SESSIONS_REQUIRED) * 100));
-      sessionIndicator = `
-        <div style="width:80%;margin-top:4px;">
-          <div style="height:4px;border-radius:2px;background:#e8edf2;overflow:hidden;">
-            <div style="height:100%;width:${sessPct}%;border-radius:2px;background:${sessColor};transition:width 0.8s;"></div>
-          </div>
-          <div style="font-size:10px;color:${sessColor};font-weight:700;margin-top:2px;">${sess}/${SESSIONS_REQUIRED} sessions</div>
-        </div>`;
-    }
-    return `
-      <div class="badge-item ${unlocked ? 'unlocked' : 'locked'}"
-           style="${unlocked ? `background: linear-gradient(145deg, ${badge.color}12, ${badge.color}06); border-color: ${badge.color}50; box-shadow: 0 4px 12px ${badge.color}12;` : ''}">
-        <div class="badge-icon">${badge.icon}</div>
-        <div class="badge-name" style="color: ${unlocked ? badge.color : '#90a4ae'}">${badge.name}</div>
-        ${unlocked ? `<div class="badge-check">✓</div>` : ''}
-        ${unlocked && date ? `<div class="badge-date">${date}</div>` : ''}
-        ${sessionIndicator}
-        <div class="badge-tooltip">${unlocked ? '✅ Débloqué !' : badge.requirement}</div>
-      </div>`;
-  }).join('');
-
-  let nextHint = '';
-  if (nextLevel) {
-    const remaining = nextLevel.min - badgeCount;
-    nextHint = `Encore ${remaining} badge${remaining > 1 ? 's' : ''} pour atteindre le niveau <strong>${nextLevel.name}</strong>`;
-  } else {
-    nextHint = `<span style="color:var(--gold);font-weight:700">🌟 Félicitations ! Niveau maximum atteint !</span>`;
-  }
-
-  document.getElementById('view-passport').innerHTML = `
-    <div class="passport-header">
-      <div class="avatar-ring">
-        <svg width="96" height="96">
-          <circle cx="48" cy="48" r="43" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="5" transform="rotate(-90 48 48)"/>
-          <circle cx="48" cy="48" r="43" fill="none" stroke="${level.color}" stroke-width="5"
-            stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"
-            transform="rotate(-90 48 48)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)"/>
-        </svg>
-        <div class="avatar-inner" style="background: linear-gradient(135deg, ${level.color}, ${level.color}bb)">
-          ${getInitials(user.nom)}
-        </div>
-      </div>
-      <div class="passport-info">
-        <div class="label">Passeport ASIN</div>
-        <div class="name">${user.nom}</div>
-        <div class="meta">${user.departement} • ${user.sessions || 0} sessions</div>
-      </div>
-      <div class="passport-level">
-        <div class="lbl">Niveau</div>
-        <div class="level-name" style="color:${level.color}">${level.name}</div>
-        <div class="badge-count">${badgeCount}<small> / ${BADGES_CONFIG.length}</small></div>
-      </div>
-    </div>
-
-    <div class="progress-card">
-      <div class="progress-top">
-        <span class="label">Progression globale</span>
-        <span class="pct">${progress}%</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width:${progress}%"></div>
-      </div>
-      <div class="progress-hint">${nextHint}</div>
-    </div>
-
-    <div class="badges-card">
-      <h3>Mes Badges</h3>
-      <div class="badges-grid">${badgesHTML}</div>
-    </div>`;
-}
-
 // ── RENDER LEADERBOARD ──
 function renderLeaderboard() {
   const sorted = [...allUsers].sort((a, b) => getBadgeCount(b) - getBadgeCount(a) || (b.sessions || 0) - (a.sessions || 0));
@@ -728,7 +633,7 @@ function renderLeaderboard() {
     const cfg = podiumConfig[i];
     const level = getLevel(getBadgeCount(user));
     return `
-      <div class="podium-item" onclick="selectUserFromLeaderboard('${user.id}')">
+      <div class="podium-item">
         <div class="podium-medal">${cfg.medal}</div>
         <div class="podium-avatar" style="background:linear-gradient(135deg,${level.color},${level.color}bb);border:3px solid ${level.color}40">
           ${getInitials(user.nom)}
@@ -749,14 +654,14 @@ function renderLeaderboard() {
       if (b.id === 'participation') {
         const sess = user.sessions || 0;
         const sessColor = sess >= SESSIONS_REQUIRED ? 'var(--success)' : (sess > 0 ? 'var(--gold)' : 'var(--text-muted)');
-        const tip = has ? `✅ Assidu PMO (${sess} sessions)` : `🔒 Assidu PMO — ${sess}/${SESSIONS_REQUIRED} sessions`;
+        const tip = has ? `✅ Participation Ateliers (${sess} sessions)` : `🔒 Participation Ateliers — ${sess}/${SESSIONS_REQUIRED} sessions`;
         return `<span class="${has ? '' : (sess > 0 ? '' : 'off')}" style="display:inline-flex;align-items:center;gap:2px;">${b.icon}<span style="font-size:10px;font-weight:800;color:${sessColor};font-style:normal;">${sess}</span><span class="rb-tip">${tip}</span></span>`;
       }
       const tip = has ? `✅ ${b.name}` : `🔒 ${b.name}`;
       return `<span class="${has ? '' : 'off'}">${b.icon}<span class="rb-tip">${tip}</span></span>`;
     }).join('');
     return `
-      <div class="ranking-row ${isMe ? 'highlight' : ''}" onclick="selectUserFromLeaderboard('${user.id}')">
+      <div class="ranking-row ${isMe ? 'highlight' : ''}">
         <div class="rank-num ${i < 3 ? 'top3' : 'normal'}">#${i + 1}</div>
         <div class="rank-avatar" style="background:linear-gradient(135deg,${level.color},${level.color}bb)">${getInitials(user.nom)}</div>
         <div class="rank-info">
@@ -781,13 +686,6 @@ function renderLeaderboard() {
       <h3>Classement complet</h3>
       ${rankingHTML}
     </div>`;
-}
-
-function selectUserFromLeaderboard(userId) {
-  currentUser = allUsers.find(u => u.id === userId);
-  updateHeader();
-  renderPassport();
-  switchView('passport');
 }
 
 // ── RENDER PROCESS ──
