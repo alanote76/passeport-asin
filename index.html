@@ -81,26 +81,21 @@ body {
 .stat-card .stat-value { font-size: 30px; font-weight: 900; margin-top: 4px; }
 
 /* Podium */
-.podium-card {
-  background: var(--white); border-radius: var(--radius); padding: 28px;
-  margin-bottom: 24px; box-shadow: var(--shadow);
-}
-.podium-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 24px; }
-.podium { display: flex; justify-content: center; align-items: flex-end; gap: 20px; }
+.podium { display: flex; justify-content: center; align-items: flex-end; gap: 12px; }
 .podium-item { display: flex; flex-direction: column; align-items: center; transition: transform 0.3s; }
 .podium-item:hover { transform: scale(1.05); }
-.podium-medal { font-size: 28px; margin-bottom: 8px; }
+.podium-medal { font-size: 24px; margin-bottom: 6px; }
 .podium-avatar {
-  width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 8px;
+  width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px;
 }
-.podium-name { font-size: 12px; font-weight: 700; text-align: center; max-width: 100px; }
-.podium-badges { font-size: 11px; color: var(--text-muted); }
+.podium-name { font-size: 11px; font-weight: 700; text-align: center; max-width: 90px; }
+.podium-badges { font-size: 10px; color: var(--text-muted); }
 .podium-bar {
-  width: 90px; border-radius: 8px 8px 0 0; margin-top: 12px;
+  width: 75px; border-radius: 8px 8px 0 0; margin-top: 10px;
   background: linear-gradient(180deg, var(--navy), var(--navy-dark));
-  display: flex; align-items: flex-start; justify-content: center; padding-top: 12px;
-  color: #fff; font-size: 24px; font-weight: 900;
+  display: flex; align-items: flex-start; justify-content: center; padding-top: 10px;
+  color: #fff; font-size: 20px; font-weight: 900;
 }
 
 /* ── PODIUMS ROW (individuel + pôles côte à côte) ── */
@@ -113,12 +108,27 @@ body {
 }
 .podium-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
 
-/* Classement par pôle */
+/* Classement par pôle (collapsible) */
 .poles-card {
-  background: var(--white); border-radius: var(--radius); padding: 24px;
-  box-shadow: var(--shadow);
+  background: var(--white); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
 }
-.poles-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+.poles-toggle {
+  width: 100%; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: none; cursor: pointer; font-family: inherit;
+}
+.poles-toggle h3 { font-size: 15px; font-weight: 700; margin: 0; pointer-events: none; }
+.poles-toggle .chevron {
+  font-size: 18px; color: var(--text-muted); transition: transform 0.3s;
+}
+.poles-card.open .chevron { transform: rotate(180deg); }
+.poles-body {
+  max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease;
+  padding: 0 24px;
+}
+.poles-card.open .poles-body {
+  max-height: 600px; padding: 0 24px 20px;
+}
 .poles-content { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .pie-container { flex-shrink: 0; position: relative; width: 150px; height: 150px; }
 .pie-container svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -536,9 +546,9 @@ function renderLeaderboard() {
   // Podium
   const podiumOrder = [sorted[1], sorted[0], sorted[2]].filter(Boolean);
   const podiumConfig = [
-    { height: 100, medal: '🥈', rank: 2 },
-    { height: 140, medal: '🥇', rank: 1 },
-    { height: 80, medal: '🥉', rank: 3 },
+    { height: 80, medal: '🥈', rank: 2 },
+    { height: 110, medal: '🥇', rank: 1 },
+    { height: 60, medal: '🥉', rank: 3 },
   ];
   const podiumHTML = podiumOrder.map((user, i) => {
     const cfg = podiumConfig[i];
@@ -575,7 +585,7 @@ function renderLeaderboard() {
     const pct = Math.round((totalBadgesPole / maxBadges) * 100);
     const avgBadges = (totalBadgesPole / users.length).toFixed(1);
     return { pole, totalBadges: totalBadgesPole, pct, avgBadges, count: users.length };
-  }).sort((a, b) => b.pct - a.pct || b.totalBadges - a.totalBadges);
+  }).sort((a, b) => b.pct - a.pct || b.totalBadges - a.totalBadges).slice(0, 8);
 
   // SVG donut
   const R = 70, CX = 90, CY = 90, CIRC = 2 * Math.PI * R;
@@ -653,13 +663,20 @@ function renderLeaderboard() {
 
   document.getElementById('view-leaderboard').innerHTML = `
     <div class="stats-row">${statsHTML}</div>
-    <div class="podium-card">
-      <h3>🏆 Podium individuel</h3>
-      <div class="podium">${podiumHTML}</div>
-    </div>
-    <div class="poles-card">
-      <h3>🏢 Classement par pôle</h3>
-      ${poleRankingHTML}
+    <div class="podiums-row">
+      <div class="podium-card">
+        <h3>🏆 Podium individuel</h3>
+        <div class="podium">${podiumHTML}</div>
+      </div>
+      <div class="poles-card" id="poles-card">
+        <button class="poles-toggle" onclick="document.getElementById('poles-card').classList.toggle('open')">
+          <h3>🏢 Classement par pôle</h3>
+          <span class="chevron">▼</span>
+        </button>
+        <div class="poles-body">
+          ${poleRankingHTML}
+        </div>
+      </div>
     </div>
     <div class="ranking-card">
       <h3>Classement individuel complet</h3>
