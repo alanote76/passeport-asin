@@ -417,7 +417,7 @@ body {
 //
 // 4. Colle le lien ci-dessous :
 
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl9kelbQnTFP43Elf6z6tt_FASYUDwrPd0FA0tHxhvLPzu5UhbyGdry1f1lhrC4TKH2rVDDv/pub?gid=2103561916&single=true&output=csv';
+const SHEET_CSV_URL = 'COLLE_TON_URL_ICI';
 
 // Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=0&single=true&output=csv'
 //
@@ -432,7 +432,7 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl
 
 const SHEET_AMBASSADORS_URL = 'COLLE_TON_URL_AMBASSADEURS_ICI';
 
-// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTzlPDJYl9kelbQnTFP43Elf6z6tt_FASYUDwrPd0FA0tHxhvLPzu5UhbyGdry1f1lhrC4TKH2rVDDv/pub?gid=1309559412&single=true&output=csv'
+// Exemple : 'https://docs.google.com/spreadsheets/d/e/2PACX-xxxx/pub?gid=123456&single=true&output=csv'
 //
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  MODE DEMO — Données fictives si pas de Google Sheet        ║
@@ -457,9 +457,11 @@ const BADGES_CONFIG = [
   { id: 'feuille_route', name: 'Feuille de Route', icon: '🗺️', color: '#00897b', requirement: 'Jalons, activités et % avancement à jour' },
   { id: 'risques', name: 'Risques & Points Durs', icon: '⚠️', color: '#e65100', requirement: 'Min. 3 risques documentés avec actions' },
   { id: 'livrables', name: 'Livrables', icon: '📦', color: '#6a1b9a', requirement: 'Liste livrables avec dates et responsables' },
-  { id: 'objectifs', name: 'Objectifs & Indicateurs', icon: '🎯', color: '#1565c0', requirement: 'Indicateurs avec valeurs cibles et réelles' },
-  { id: 'participation', name: 'Assidu PMO', icon: '🎓', color: '#f5a623', requirement: 'Min. 4 sessions sur les 2 derniers mois' },
+  { id: 'objectifs', name: 'Planification Gouvernance', icon: '🎯', color: '#1565c0', requirement: 'Sessions de gouvernance planifiées et tenues' },
+  { id: 'participation', name: 'Assidu PMO', icon: '🎓', color: '#f5a623', requirement: 'Min. 4 sessions du vendredi' },
 ];
+
+const SESSIONS_REQUIRED = 4;
 
 const LEVELS = [
   { name: 'Débutant', min: 0, max: 1, color: '#b0bec5' },
@@ -623,6 +625,19 @@ function renderPassport() {
     const unlocked = user[badge.id] === true;
     const dateKey = `date_${badge.id}`;
     const date = user[dateKey] || '';
+    let sessionIndicator = '';
+    if (badge.id === 'participation') {
+      const sess = user.sessions || 0;
+      const sessColor = sess >= SESSIONS_REQUIRED ? 'var(--success)' : 'var(--gold)';
+      const sessPct = Math.min(100, Math.round((sess / SESSIONS_REQUIRED) * 100));
+      sessionIndicator = `
+        <div style="width:80%;margin-top:4px;">
+          <div style="height:4px;border-radius:2px;background:#e8edf2;overflow:hidden;">
+            <div style="height:100%;width:${sessPct}%;border-radius:2px;background:${sessColor};transition:width 0.8s;"></div>
+          </div>
+          <div style="font-size:10px;color:${sessColor};font-weight:700;margin-top:2px;">${sess}/${SESSIONS_REQUIRED} sessions</div>
+        </div>`;
+    }
     return `
       <div class="badge-item ${unlocked ? 'unlocked' : 'locked'}"
            style="${unlocked ? `background: linear-gradient(145deg, ${badge.color}12, ${badge.color}06); border-color: ${badge.color}50; box-shadow: 0 4px 12px ${badge.color}12;` : ''}">
@@ -630,6 +645,7 @@ function renderPassport() {
         <div class="badge-name" style="color: ${unlocked ? badge.color : '#90a4ae'}">${badge.name}</div>
         ${unlocked ? `<div class="badge-check">✓</div>` : ''}
         ${unlocked && date ? `<div class="badge-date">${date}</div>` : ''}
+        ${sessionIndicator}
         <div class="badge-tooltip">${unlocked ? '✅ Débloqué !' : badge.requirement}</div>
       </div>`;
   }).join('');
@@ -730,6 +746,12 @@ function renderLeaderboard() {
     const isMe = user.id === currentUser.id;
     const badgeIcons = BADGES_CONFIG.map(b => {
       const has = user[b.id];
+      if (b.id === 'participation') {
+        const sess = user.sessions || 0;
+        const sessColor = sess >= SESSIONS_REQUIRED ? 'var(--success)' : (sess > 0 ? 'var(--gold)' : 'var(--text-muted)');
+        const tip = has ? `✅ Assidu PMO (${sess} sessions)` : `🔒 Assidu PMO — ${sess}/${SESSIONS_REQUIRED} sessions`;
+        return `<span class="${has ? '' : (sess > 0 ? '' : 'off')}" style="display:inline-flex;align-items:center;gap:2px;">${b.icon}<span style="font-size:10px;font-weight:800;color:${sessColor};font-style:normal;">${sess}</span><span class="rb-tip">${tip}</span></span>`;
+      }
       const tip = has ? `✅ ${b.name}` : `🔒 ${b.name}`;
       return `<span class="${has ? '' : 'off'}">${b.icon}<span class="rb-tip">${tip}</span></span>`;
     }).join('');
