@@ -534,9 +534,9 @@ function renderLeaderboard() {
 
   // Stats
   const statsHTML = [
-    { label: '👥 Chefs de Projet et membres équipes', value: allUsers.length, color: 'var(--navy)' },
+    { label: '👥 Chef de Projet et Membres des équipes projet', value: allUsers.length, color: 'var(--navy)' },
     { label: '🏅 Badges débloqués', value: totalBadges, color: 'var(--gold)' },
-    { label: '📊 Taux complétion', value: avgPct + '%', color: 'var(--teal)' },
+    { label: '📊 Taux complétion - 1er trimestre', value: avgPct + '%', color: 'var(--teal)' },
   ].map(s => `
     <div class="stat-card" style="border-left-color:${s.color}">
       <div class="stat-label">${s.label}</div>
